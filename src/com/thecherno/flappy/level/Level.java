@@ -1,5 +1,7 @@
 package com.thecherno.flappy.level;
 
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_W;
+
 import java.util.Random;
 
 import com.thecherno.flappy.graphics.Shader;
@@ -8,8 +10,6 @@ import com.thecherno.flappy.graphics.VertexArray;
 import com.thecherno.flappy.input.Input;
 import com.thecherno.flappy.maths.Matrix4f;
 import com.thecherno.flappy.maths.Vector3f;
-
-import static org.lwjgl.glfw.GLFW.*;
 
 public class Level {
 
@@ -24,12 +24,13 @@ public class Level {
 	private Pipe[] pipes = new Pipe[5 * 2];
 	private int index = 0;
 	private float OFFSET = 5.0f;
-	private boolean control = true, reset = false;
-	
+	static boolean control = true;
+	private boolean reset = false;
+	private boolean limbo = true;
+	private int score = 0;
 	private Random random = new Random();
-	
 	private float time = 0.0f;
-	
+
 	public Level() {
 		float[] vertices = new float[] {
 			-10.0f, -10.0f * 9.0f / 16.0f, 0.0f,
@@ -53,7 +54,7 @@ public class Level {
 		fade = new VertexArray(6);
 		background = new VertexArray(vertices, indices, tcs);
 		bgTexture = new Texture("res/bg.jpeg");
-		bird = new Bird();
+		bird = new Bird(this);
 		
 		createPipes();
 	}
@@ -74,22 +75,33 @@ public class Level {
 	}
 	
 	public void update() {
-		if (control) {
+		if (control == true && limbo == false) {
 			xScroll--;
 			if (-xScroll % 335 == 0) map++;
 			if (-xScroll > 250 && -xScroll % 120 == 0)
 				updatePipes();
 		}
 		
-		bird.update();
+		bird.update(); 
 		
 		if (control && collision()) {
-			bird.fall();
 			control = false;
+			bird.fall();
+		}
+
+		if (limbo == false && xScroll % 115 == 0 && xScroll != 0) {
+			score++;
 		}
 		
-		if (!control && Input.isKeyDown(GLFW_KEY_SPACE))	
+		if (control == false && Input.isKeyDown(GLFW_KEY_W)){
 			reset = true;
+			control = true;
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 		
 		time += 0.01f;
 	}
@@ -139,6 +151,9 @@ public class Level {
 	public boolean isGameOver() {
 		return reset;
 	}
+	public void renderScore(){
+		
+	}
 	
 	public void render() {
 		bgTexture.bind();
@@ -161,4 +176,7 @@ public class Level {
 		Shader.FADE.disable();
 	}
 	
+	public boolean getLimbo() {
+		return limbo;
+	}
 }

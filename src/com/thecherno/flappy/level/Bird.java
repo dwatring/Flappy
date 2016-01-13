@@ -18,8 +18,9 @@ public class Bird {
 	private Vector3f position = new Vector3f();
 	private float rot;
 	private float delta = 0.0f;
+	private Level level = null;
 	
-	public Bird() {
+	public Bird(Level level) {
 		float[] vertices = new float[] {
 			-SIZE / 2.0f, -SIZE / 2.0f, 0.2f,
 			-SIZE / 2.0f,  SIZE / 2.0f, 0.2f,
@@ -38,19 +39,21 @@ public class Bird {
 			1, 0,
 			1, 1
 		};
-		
+		this.level = level;
 		mesh = new VertexArray(vertices, indices, tcs);
 		texture = new Texture("res/bird.png");
 	}
 	
-	public void update() {
-		position.y -= delta;
-		if (Input.isKeyDown(GLFW_KEY_SPACE)) 
-			delta = -0.15f;
-		else
+	public void update() {                                                                                                      
+		if(level.getLimbo() == false){
+			position.y -= delta;
+			if(Level.control == true){
+				if (Input.isKeyDown(GLFW_KEY_W)) 
+					delta = -0.15f;
+			}
 			delta += 0.01f;
-		
-		rot = -delta * 90.0f;
+			rot = -delta * 90.0f;
+		}
 	}
 	
 	public void fall() {

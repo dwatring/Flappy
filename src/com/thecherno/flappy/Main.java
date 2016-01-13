@@ -5,10 +5,8 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
-import java.nio.ByteBuffer;
-
-import org.lwjgl.glfw.GLFWvidmode;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.opengl.GL;
 
 import com.thecherno.flappy.graphics.Shader;
 import com.thecherno.flappy.input.Input;
@@ -23,7 +21,7 @@ public class Main implements Runnable {
 	private Thread thread;
 	private boolean running = false;
 	
-	private long window;
+	private long window; //OpenGL doesn't have objects. This is identifier
 	
 	private Level level;
 	
@@ -32,28 +30,27 @@ public class Main implements Runnable {
 		thread = new Thread(this, "Game");
 		thread.start();
 	}
-	
+	 
 	private void init() {
-		if (glfwInit() != GL_TRUE) {
+		if (glfwInit() == GL_FALSE) { //HANDLER
 			System.err.println("Could not initialize GLFW!");
 			return;
 		}
-		
+	    
 		glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 		window = glfwCreateWindow(width, height, "Flappy", NULL, NULL);
-		if (window == NULL) {
+		if (window == NULL) { //HANDLER
 			System.err.println("Could not create GLFW window!");
 			return;
-		}
-		
-		ByteBuffer vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-		glfwSetWindowPos(window, (GLFWvidmode.width(vidmode) - width) / 2, (GLFWvidmode.height(vidmode) - height) / 2);
+		}  
+		GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+		glfwSetWindowPos(window, ((vidmode.width() - width) /2), (vidmode.height() - height) /2);
 		
 		glfwSetKeyCallback(window, new Input());
 		
 		glfwMakeContextCurrent(window);
 		glfwShowWindow(window);
-		GLContext.createFromCurrent();
+		GL.createCapabilities();
 		
  		glEnable(GL_DEPTH_TEST);
 		glActiveTexture(GL_TEXTURE1);
@@ -77,7 +74,8 @@ public class Main implements Runnable {
 	
 	public void run() {
 		init();
-		
+		Input input = new Input();
+		glfwSetKeyCallback(window, input);
 		long lastTime = System.nanoTime();
 		double delta = 0.0;
 		double ns = 1000000000.0 / 60.0;
@@ -101,8 +99,8 @@ public class Main implements Runnable {
 				updates = 0;
 				frames = 0;
 			}
-			if (glfwWindowShouldClose(window) == GL_TRUE)
-				running = false;
+		if (glfwWindowShouldClose(window) == GL_TRUE) // Enables close button
+			running = false;
 		}
 		
 		glfwDestroyWindow(window);
